@@ -52,8 +52,8 @@
 
 <div class="container">
     <h2>数字診断ツール</h2>
-    <input type="text" id="nameInput" placeholder="名前を入力 (例: Alice)">
-    <button onclick="calculate()">計算する</button>
+    <input type="text" id="nameInput" placeholder="名前を入力 (例: Alice)" onkeydown="if(event.key==='Enter') calculate()">
+<button onclick="calculate()">計算する</button>
 
     <div class="result-box">
         <p id="vowelResult">母音の合計: --</p>
