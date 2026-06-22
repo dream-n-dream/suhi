@@ -8,14 +8,16 @@
         body { font-family: sans-serif; padding: 15px; background-color: #f4f4f9; }
         .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
-        input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .date-select-group { display: flex; gap: 5px; margin-bottom: 15px; }
-        .date-select-group select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        input { width: 100%; padding: 15px; margin: 10px 0; box-sizing: border-box; border: 2px solid #ccc; border-radius: 8px; font-size: 18px; }
+        
+        /* 選択欄を大きくしました */
+        .date-select-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .date-select-group select { flex: 1; padding: 15px; font-size: 18px; border-radius: 8px; border: 2px solid #ccc; background-color: #fff; }
+
+        button { width: 100%; padding: 18px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 20px; cursor: pointer; }
         .result-box { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
         .result-item { margin: 8px 0; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
 
-        /* 説明図のスタイル */
         .diamond-container { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 30px; margin-top: 40px; border-top: 2px dashed #ccc; }
         .row { display: flex; justify-content: center; gap: 15px; }
         .box { width: 90px; height: 60px; border: 3px solid #333; display: flex; align-items: center; justify-content: center; background-color: #fff; border-radius: 8px; font-size: 16px; font-weight: bold; }
@@ -44,7 +46,7 @@
     </div>
 
     <div class="diamond-container">
-        <div class="row"><div class="box" id="d-top"></div></div>
+        <div class="row"><div class="box" id="d-top">--</div></div>
         <div class="row"><div class="box" id="d-1a">--</div></div>
         <div class="row"><div class="box" id="d-2a">--</div><div class="box" id="d-2b">--</div></div>
         <div class="row"><div class="box" id="d-3a">--</div><div class="box" id="d-3b">--</div><div class="box" id="d-3c">--</div></div>
@@ -55,7 +57,6 @@
 </div>
 
 <script defer>
-    // 初期設定
     const yearSelect = document.getElementById('year');
     const monthSelect = document.getElementById('month');
     const daySelect = document.getElementById('day');
@@ -72,7 +73,6 @@
     }
 
     function calculate() {
-        // 名前計算
         const input = document.getElementById('nameInput').value.toLowerCase().replace(/[^a-z]/g, '');
         const y = document.getElementById('year').value;
         const m = parseInt(document.getElementById('month').value);
@@ -87,13 +87,11 @@
             else consonantSum += val;
         }
 
-        // 軌道数計算（生年月日の全桁合計）
         const dateStr = y + m + d;
         const dateSum = dateStr.split('').reduce((a, b) => a + parseInt(b), 0);
         const lifePath = reduceToMaster(dateSum);
         const expression = reduceToMaster(vowelSum + consonantSum);
 
-        // 表示の反映
         document.getElementById('vowelResult').innerText = "母音の合計: " + vowelSum;
         document.getElementById('consonantResult').innerText = "子音の合計: " + consonantSum;
         document.getElementById('totalResult').innerText = "すべての合計: " + (vowelSum + consonantSum);
@@ -104,11 +102,9 @@
         const mat = lifePath + expression;
         document.getElementById('maturity').innerText = "成熟数: " + mat + " / " + reduceToMaster(mat);
 
-        // 図への反映ロジック
         const d3a = reduceToMaster(m);
         const d3b = reduceToMaster(d);
         const d3c = reduceToMaster(y.split('').reduce((a,b)=>a+parseInt(b),0));
-
         const d2a = reduceToMaster(d3a + d3b);
         const d2b = reduceToMaster(d3b + d3c);
         const d2c = Math.abs(d3a - d3b);
