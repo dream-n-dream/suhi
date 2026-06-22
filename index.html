@@ -3,87 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>名前の数字診断</title>
+    <title>数秘診断・説明図ツール</title>
     <style>
-        /* スマホ向けの設定 */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 15px; 
-            line-height: 1.6;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        body { font-family: sans-serif; padding: 15px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
-        
-        /* 入力欄とボタンをスマホで押しやすくする */
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 10px 0; 
-            box-sizing: border-box; /* 枠線を幅に含める */
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px; /* スマホで拡大されないサイズ */
-        }
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        button:active { background-color: #0056b3; } /* 押した時の反応 */
-
+        input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .date-select-group { display: flex; gap: 5px; margin-bottom: 15px; }
+        .date-select-group select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
         .result-box { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
-        .result-box p { margin: 10px 0; font-weight: bold; }
+        .result-item { margin: 8px 0; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+
+        /* 説明図のスタイル */
+        .diamond-container { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 30px; margin-top: 40px; border-top: 2px dashed #ccc; }
+        .row { display: flex; justify-content: center; gap: 15px; }
+        .box { width: 90px; height: 60px; border: 3px solid #333; display: flex; align-items: center; justify-content: center; background-color: #fff; border-radius: 8px; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>数字診断ツール</h2>
-    <input type="text" id="nameInput" placeholder="名前を入力 (例: Alice)" onkeydown="if(event.key==='Enter') calculate()">
-<button onclick="calculate()">計算する</button>
+    <h2>数秘診断ツール</h2>
+    <input type="text" id="nameInput" placeholder="名前を入力 (英語)">
+    <div class="date-select-group">
+        <select id="year"></select><select id="month"></select><select id="day"></select>
+    </div>
+    <button onclick="calculate()">計算・診断する</button>
 
     <div class="result-box">
-        <p id="vowelResult">母音の合計: --</p>
-        <p id="consonantResult">子音の合計: --</p>
-        <p id="totalResult">すべての合計: --</p>
+        <p id="vowelResult" class="result-item">母音の合計: --</p>
+        <p id="consonantResult" class="result-item">子音の合計: --</p>
+        <p id="totalResult" class="result-item">すべての合計: --</p>
+        <hr>
+        <p id="lifePath" class="result-item">軌道数: --</p>
+        <p id="expression" class="result-item">表現数: --</p>
+        <p id="soulUrge" class="result-item">魂の衝動数: --</p>
+        <p id="personality" class="result-item">人格数: --</p>
+        <p id="maturity" class="result-item">成熟数: --</p>
+    </div>
+
+    <div class="diamond-container">
+        <div class="row"><div class="box" id="d-top">頂点</div></div>
+        <div class="row"><div class="box" id="d-1a">--</div></div>
+        <div class="row"><div class="box" id="d-2a">--</div><div class="box" id="d-2b">--</div></div>
+        <div class="row"><div class="box" id="d-3a">--</div><div class="box" id="d-3b">--</div><div class="box" id="d-3c">--</div></div>
+        <div class="row"><div class="box" id="d-2c">--</div><div class="box" id="d-2d">--</div></div>
+        <div class="row"><div class="box" id="d-1b">--</div></div>
+        <div class="row"><div class="box" id="d-bottom">--</div></div>
     </div>
 </div>
 
-<script>
-    function calculate() {
-        const input = document.getElementById('nameInput').value.toLowerCase();
-        let vowelSum = 0;
-        let consonantSum = 0;
-        const vowels = ['a', 'i', 'u', 'e', 'o'];
+<script defer>
+    // 初期設定
+    const yearSelect = document.getElementById('year');
+    const monthSelect = document.getElementById('month');
+    const daySelect = document.getElementById('day');
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i >= 1900; i--) yearSelect.add(new Option(i + "年", i));
+    for (let i = 1; i <= 12; i++) monthSelect.add(new Option(i + "月", i));
+    for (let i = 1; i <= 31; i++) daySelect.add(new Option(i + "日", i));
 
-        for (let char of input) {
-            if (char >= 'a' && char <= 'z') {
-                const code = char.charCodeAt(0) - 96;
-                const val = ((code - 1) % 9) + 1;
-
-                if (vowels.includes(char)) {
-                    vowelSum += val;
-                } else {
-                    consonantSum += val;
-                }
-            }
+    function reduceToMaster(num) {
+        while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+            num = num.toString().split('').reduce((a, b) => parseInt(a) + parseInt(b), 0);
         }
+        return num;
+    }
+
+    function calculate() {
+        // 名前計算
+        const input = document.getElementById('nameInput').value.toLowerCase().replace(/[^a-z]/g, '');
+        const y = document.getElementById('year').value;
+        const m = parseInt(document.getElementById('month').value);
+        const d = parseInt(document.getElementById('day').value);
+
+        let vowelSum = 0, consonantSum = 0;
+        const vowels = ['a', 'i', 'u', 'e', 'o'];
+        for (let char of input) {
+            const code = char.charCodeAt(0) - 96;
+            const val = ((code - 1) % 9) + 1;
+            if (vowels.includes(char)) vowelSum += val;
+            else consonantSum += val;
+        }
+
+        // 軌道数計算（生年月日の全桁合計）
+        const dateStr = y + m + d;
+        const dateSum = dateStr.split('').reduce((a, b) => a + parseInt(b), 0);
+        const lifePath = reduceToMaster(dateSum);
+        const expression = reduceToMaster(vowelSum + consonantSum);
+
+        // 表示の反映
         document.getElementById('vowelResult').innerText = "母音の合計: " + vowelSum;
         document.getElementById('consonantResult').innerText = "子音の合計: " + consonantSum;
         document.getElementById('totalResult').innerText = "すべての合計: " + (vowelSum + consonantSum);
+        document.getElementById('lifePath').innerText = "軌道数: " + dateSum + " / " + lifePath;
+        document.getElementById('expression').innerText = "表現数: " + (vowelSum + consonantSum) + " / " + expression;
+        document.getElementById('soulUrge').innerText = "魂の衝動数: " + vowelSum + " / " + reduceToMaster(vowelSum);
+        document.getElementById('personality').innerText = "人格数: " + consonantSum + " / " + reduceToMaster(consonantSum);
+        const mat = lifePath + expression;
+        document.getElementById('maturity').innerText = "成熟数: " + mat + " / " + reduceToMaster(mat);
+
+        // 図への反映ロジック
+        const d3a = reduceToMaster(m);
+        const d3b = reduceToMaster(d);
+        const d3c = reduceToMaster(y.split('').reduce((a,b)=>a+parseInt(b),0));
+
+        const d2a = reduceToMaster(d3a + d3b);
+        const d2b = reduceToMaster(d3b + d3c);
+        const d2c = Math.abs(d3a - d3b);
+        const d2d = Math.abs(d3b - d3c);
+
+        document.getElementById('d-3a').innerText = d3a;
+        document.getElementById('d-3b').innerText = d3b;
+        document.getElementById('d-3c').innerText = d3c;
+        document.getElementById('d-2a').innerText = d2a;
+        document.getElementById('d-2b').innerText = d2b;
+        document.getElementById('d-2c').innerText = d2c;
+        document.getElementById('d-2d').innerText = d2d;
+        document.getElementById('d-1a').innerText = reduceToMaster(d2a + d2b);
+        document.getElementById('d-1b').innerText = Math.abs(d2c - d2d);
+        document.getElementById('d-top').innerText = reduceToMaster(d3a + d3c);
+        document.getElementById('d-bottom').innerText = Math.abs(d3a - d3c);
     }
 </script>
 </body>
