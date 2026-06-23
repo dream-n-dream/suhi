@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数秘診断・説明図ツール</title>
+    <title>数秘診断</title>
     <style>
         body { font-family: sans-serif; padding: 15px; background-color: #f4f4f9; }
         .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
         input { width: 100%; padding: 15px; margin: 10px 0; box-sizing: border-box; border: 2px solid #ccc; border-radius: 8px; font-size: 18px; }
-        
-        /* 選択欄を大きくしました */
         .date-select-group { display: flex; gap: 10px; margin-bottom: 20px; }
         .date-select-group select { flex: 1; padding: 15px; font-size: 18px; border-radius: 8px; border: 2px solid #ccc; background-color: #fff; }
-
         button { width: 100%; padding: 18px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 20px; cursor: pointer; }
         .result-box { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
         .result-item { margin: 8px 0; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        .karma-box { margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; }
+        .karma-item { display: flex; justify-content: space-between; padding: 3px 0; }
+        .temperament-box { margin-top: 15px; padding: 15px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; }
 
         .diamond-container { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 30px; margin-top: 40px; border-top: 2px dashed #ccc; }
         .row { display: flex; justify-content: center; gap: 15px; }
@@ -26,12 +26,12 @@
 <body>
 
 <div class="container">
-    <h2>数秘診断ツール</h2>
+    <h2>数秘診断</h2>
     <input type="text" id="nameInput" placeholder="名前を入力 (英語)">
     <div class="date-select-group">
         <select id="year"></select><select id="month"></select><select id="day"></select>
     </div>
-    <button onclick="calculate()">計算・診断する</button>
+    <button onclick="calculate()">診断</button>
 
     <div class="result-box">
         <p id="vowelResult" class="result-item">母音の合計: --</p>
@@ -43,6 +43,19 @@
         <p id="soulUrge" class="result-item">魂の衝動数: --</p>
         <p id="personality" class="result-item">人格数: --</p>
         <p id="maturity" class="result-item">成熟数: --</p>
+    </div>
+
+    <div id="karmaList" class="karma-box">
+        <strong>カルマリスト</strong>
+        <div id="karmaItems"></div>
+        <hr>
+        <div id="temperaments" class="temperament-box">
+            <strong>気質</strong>
+            <p id="temp-thought">思考 (1 8): --</p>
+            <p id="temp-emotion">感情 (2 3 6): --</p>
+            <p id="temp-body">肉体 (4 5): --</p>
+            <p id="temp-intuition">直感 (7 9): --</p>
+        </div>
     </div>
 
     <div class="diamond-container">
@@ -65,11 +78,13 @@
     for (let i = 1; i <= 12; i++) monthSelect.add(new Option(i + "月", i));
     for (let i = 1; i <= 31; i++) daySelect.add(new Option(i + "日", i));
 
-    function reduceToMaster(num) {
-        while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
-            num = num.toString().split('').reduce((a, b) => parseInt(a) + parseInt(b), 0);
+    function reduceToOne(num) {
+        if (num === 0) return 0;
+        let n = num;
+        while (n > 9) {
+            n = n.toString().split('').reduce((a, b) => parseInt(a) + parseInt(b), 0);
         }
-        return num;
+        return n;
     }
 
     function calculate() {
@@ -78,35 +93,54 @@
         const m = parseInt(document.getElementById('month').value);
         const d = parseInt(document.getElementById('day').value);
 
+        const counts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+        const karmaValues = {};
         let vowelSum = 0, consonantSum = 0;
         const vowels = ['a', 'i', 'u', 'e', 'o'];
+
         for (let char of input) {
             const code = char.charCodeAt(0) - 96;
             const val = ((code - 1) % 9) + 1;
+            counts[val]++;
             if (vowels.includes(char)) vowelSum += val;
             else consonantSum += val;
         }
 
+        const karmaItems = document.getElementById('karmaItems');
+        karmaItems.innerHTML = '';
+        for(let i=1; i<=9; i++) {
+            karmaValues[i] = counts[i] > 0 ? reduceToOne(counts[i]) : 0;
+            const div = document.createElement('div');
+            div.className = 'karma-item';
+            div.innerHTML = `<span>数字 ${i}:</span> <span>${karmaValues[i] > 0 ? karmaValues[i] : '0'}</span>`;
+            karmaItems.appendChild(div);
+        }
+
+        // 気質の計算
+        document.getElementById('temp-thought').innerText = "思考 (1 8): " + reduceToOne(karmaValues[1] + karmaValues[8]);
+        document.getElementById('temp-emotion').innerText = "感情 (2 3 6): " + reduceToOne(karmaValues[2] + karmaValues[3] + karmaValues[6]);
+        document.getElementById('temp-body').innerText = "肉体 (4 5): " + reduceToOne(karmaValues[4] + karmaValues[5]);
+        document.getElementById('temp-intuition').innerText = "直感 (7 9): " + reduceToOne(karmaValues[7] + karmaValues[9]);
+
         const dateStr = y + m + d;
         const dateSum = dateStr.split('').reduce((a, b) => a + parseInt(b), 0);
-        const lifePath = reduceToMaster(dateSum);
-        const expression = reduceToMaster(vowelSum + consonantSum);
+        const lifePathFinal = reduceToOne(dateSum);
+        const expressionFinal = reduceToOne(vowelSum + consonantSum);
 
         document.getElementById('vowelResult').innerText = "母音の合計: " + vowelSum;
         document.getElementById('consonantResult').innerText = "子音の合計: " + consonantSum;
         document.getElementById('totalResult').innerText = "すべての合計: " + (vowelSum + consonantSum);
-        document.getElementById('lifePath').innerText = "軌道数: " + dateSum + " / " + lifePath;
-        document.getElementById('expression').innerText = "表現数: " + (vowelSum + consonantSum) + " / " + expression;
-        document.getElementById('soulUrge').innerText = "魂の衝動数: " + vowelSum + " / " + reduceToMaster(vowelSum);
-        document.getElementById('personality').innerText = "人格数: " + consonantSum + " / " + reduceToMaster(consonantSum);
-        const mat = lifePath + expression;
-        document.getElementById('maturity').innerText = "成熟数: " + mat + " / " + reduceToMaster(mat);
+        document.getElementById('lifePath').innerText = "軌道数: " + dateSum + " / " + lifePathFinal;
+        document.getElementById('expression').innerText = "表現数: " + (vowelSum + consonantSum) + " / " + expressionFinal;
+        document.getElementById('soulUrge').innerText = "魂の衝動数: " + vowelSum + " / " + reduceToOne(vowelSum);
+        document.getElementById('personality').innerText = "人格数: " + consonantSum + " / " + reduceToOne(consonantSum);
+        document.getElementById('maturity').innerText = "成熟数: " + (lifePathFinal + expressionFinal) + " / " + reduceToOne(lifePathFinal + expressionFinal);
 
-        const d3a = reduceToMaster(m);
-        const d3b = reduceToMaster(d);
-        const d3c = reduceToMaster(y.split('').reduce((a,b)=>a+parseInt(b),0));
-        const d2a = reduceToMaster(d3a + d3b);
-        const d2b = reduceToMaster(d3b + d3c);
+        const d3a = reduceToOne(m);
+        const d3b = reduceToOne(d);
+        const d3c = reduceToOne(y.split('').reduce((a,b)=>a+parseInt(b),0));
+        const d2a = reduceToOne(d3a + d3b);
+        const d2b = reduceToOne(d3b + d3c);
         const d2c = Math.abs(d3a - d3b);
         const d2d = Math.abs(d3b - d3c);
 
@@ -117,9 +151,9 @@
         document.getElementById('d-2b').innerText = d2b;
         document.getElementById('d-2c').innerText = d2c;
         document.getElementById('d-2d').innerText = d2d;
-        document.getElementById('d-1a').innerText = reduceToMaster(d2a + d2b);
+        document.getElementById('d-1a').innerText = reduceToOne(d2a + d2b);
         document.getElementById('d-1b').innerText = Math.abs(d2c - d2d);
-        document.getElementById('d-top').innerText = reduceToMaster(d3a + d3c);
+        document.getElementById('d-top').innerText = reduceToOne(d3a + d3c);
         document.getElementById('d-bottom').innerText = Math.abs(d3a - d3c);
     }
 </script>
